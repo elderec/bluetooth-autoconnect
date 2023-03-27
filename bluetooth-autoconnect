@@ -15,6 +15,7 @@ from xml.etree import ElementTree
 
 SCRIPT_NAME = os.path.basename(sys.argv[0])
 
+whitelist = None
 
 def dbus_get_child_object_paths(object_path):
     object_paths = []
@@ -63,6 +64,12 @@ def connect_devices_for_adapter(adapter_path):
     for device_path in device_paths:
         if verbose:
             print(f'found device {device_path}', flush=True)
+        #if whitelist is not null, skip devices not in the whitelist
+        if whitelist:
+            if device_path not in whitelist:
+                if verbose:
+                    print(f'device {device_path} is not in the whitelist', flush=True)
+                continue
         try:
             # Read the device's properties
             obj = bus.get_object('org.bluez', device_path)
@@ -138,6 +145,7 @@ def usage():
         f'                    trusted devices when an adapter is powered on',
         f'  -h, --help        Print this help message',
         f'  -v, --verbose     Show more detailed log messages',
+        f'  -w, --whitelist   Whitelist of devices to connect to',
         f'',
     ]), flush=True)
     sys.exit(0)
@@ -146,10 +154,11 @@ def usage():
 def main():
     global daemon
     global verbose
+    global whitelist
 
     # Parse command line arguments
     try:
-        opts, cmds = getopt.getopt(sys.argv[1:], 'dhv', ['daemon', 'help', 'verbose'])
+        opts, cmds = getopt.getopt(sys.argv[1:], 'dhvw:', ['daemon', 'help', 'verbose','whitelist='])
     except getopt.GetoptError as e:
         print(f'{SCRIPT_NAME}:', e, file=sys.stderr, flush=True)
         print(f"Try '{SCRIPT_NAME} --help' for more information", file=sys.stderr, flush=True)
@@ -163,6 +172,12 @@ def main():
             usage()
         elif o in ('-v', '--verbose'):
             verbose = True
+        elif o in ('-w', '--whitelist'): #if a file is provided as an argument, read the file and add the addresses to the whitelist
+            with open(v, 'r') as f:
+                whitelist = f.read().splitlines()
+            if verbose:
+                print('whitelist:')
+                print(whitelist)
         else:
             # This shouldn't ever happen unless we forget to handle an
             # option we've added

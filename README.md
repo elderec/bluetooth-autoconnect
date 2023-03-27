@@ -45,7 +45,7 @@ OPTIONS:
                     trusted devices when an adapter is powered on
   -h, --help        Print this help message
   -v, --verbose     Show more detailed log messages
-
+  -w, --whitelist   Whitelist of devices to connect to
 ```
 
 Simply running the script will scan all powered on adapters and connect to any available devices
