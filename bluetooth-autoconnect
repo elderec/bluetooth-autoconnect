@@ -76,8 +76,11 @@ def connect_devices_for_adapter(adapter_path):
             props = obj.GetAll(
                     'org.bluez.Device1',
                     dbus_interface='org.freedesktop.DBus.Properties')
-
-            if props.get('Connected', False):
+            #if device is blocked, skip it
+            if props.get('Blocked', False):
+                if verbose:
+                    print(f'device {device_path} is blocked', flush=True)  
+            elif props.get('Connected', False):
                 if verbose:
                     print(f'device {device_path} is already connected', flush=True)
             elif not props.get('Trusted', False):
